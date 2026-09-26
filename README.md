@@ -66,3 +66,11 @@ cargo test -p oxidize-webpki
 cargo +1.88 test -p oxidize-webpki
 cargo package -p oxidize-webpki --allow-dirty
 ```
+
+## Publishing
+
+Maintainers publish from GitHub Actions using **Publish to crates.io** on
+`main`, specifying the exact version from `Cargo.toml`. Publication waits for
+Linux, Windows, macOS, Rust 1.88, formatting, Clippy, and packaging checks at
+the same commit. The repository secret `CARGO_REGISTRY_TOKEN` authenticates
+the publishing job; it is not provided to pull-request validation jobs.
