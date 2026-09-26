@@ -3,35 +3,55 @@ on:
   push:
   pull_request:
   workflow_call:
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
   test:
+    name: Tests / ${{ matrix.os }} / Rust ${{ matrix.toolchain }}
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        toolchain: [stable]
-        include:
-          - os: ubuntu-latest
-            toolchain: '1.88'
+        toolchain: [stable, '1.88']
     runs-on: ${{ matrix.os }}
     env:
       CC: 'false'
       CXX: 'false'
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
-      - run: cargo test --locked
-      - run: cargo package --locked
+      - name: Reject native dependencies in the target graph
+        run: python scripts/check_no_native_dependencies.py
+      - name: Test signature vectors and rejection policies (debug)
+        run: cargo test --locked --all-targets
+      - name: Test signature vectors and rejection policies (release)
+        run: cargo test --locked --release --all-targets
+      - name: Test public documentation examples
+        run: cargo test --locked --doc
+      - name: Build and verify distributable crate
+        run: cargo package --locked
+      - name: Test sources and fixtures from the packaged crate
+        run: python scripts/test_packaged_crate.py
   lint:
+    name: Format, Clippy and documentation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
-      - run: cargo fmt --check
-      - run: cargo clippy --locked --all-targets -- -D warnings
+      - name: Check Rust formatting
+        run: cargo fmt --check
+      - name: Deny Clippy warnings
+        run: cargo clippy --locked --all-targets -- -D warnings
+      - name: Build public documentation without warnings
+        env:
+          RUSTDOCFLAGS: '-D warnings'
+        run: cargo doc --locked --no-deps

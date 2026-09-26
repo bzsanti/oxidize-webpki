@@ -1,5 +1,7 @@
 # oxidize-webpki
 
+[![CI](https://github.com/bzsanti/oxidize-webpki/actions/workflows/ci.yml/badge.svg)](https://github.com/bzsanti/oxidize-webpki/actions/workflows/ci.yml)
+
 RustCrypto implementations of `rustls_pki_types::SignatureVerificationAlgorithm`
 for certificate signature verification. Requires Rust 1.88 and `std`.
 
@@ -74,3 +76,17 @@ Maintainers publish from GitHub Actions using **Publish to crates.io** on
 Linux, Windows, macOS, Rust 1.88, formatting, Clippy, and packaging checks at
 the same commit. The repository secret `CARGO_REGISTRY_TOKEN` authenticates
 the publishing job; it is not provided to pull-request validation jobs.
+
+## Continuous integration
+
+Every push and pull request runs six native test jobs: Linux, Windows and
+macOS, each on stable Rust and the minimum supported Rust 1.88. Every job
+checks the production dependency graph for native sources/toolchains, runs
+signature vectors and rejection-policy tests in debug and release, runs
+doctests, packages the crate, then extracts the archive and runs its tests
+using only the packaged sources and fixtures. C/C++ compilers are disabled.
+The dependency gate inspects source archives and metadata; it complements
+build checks and is not an audit of arbitrary build-script behavior.
+
+A separate job checks formatting, Clippy and rustdoc with warnings denied.
+The publication workflow calls this same CI and requires all jobs to pass.
