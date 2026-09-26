@@ -1,0 +1,6 @@
+* text=auto
+*.bin binary
+*.der binary
+*.spki binary
+*.sig binary
+*.crl binary
