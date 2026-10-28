@@ -74,8 +74,11 @@ cargo package -p oxidize-webpki --allow-dirty
 Maintainers publish from GitHub Actions using **Publish to crates.io** on
 `main`, specifying the exact version from `Cargo.toml`. Publication waits for
 Linux, Windows, macOS, Rust 1.88, formatting, Clippy, and packaging checks at
-the same commit. The repository secret `CARGO_REGISTRY_TOKEN` authenticates
-the publishing job; it is not provided to pull-request validation jobs.
+the same commit. Trusted Publishing authenticates the publishing job using GitHub OIDC and a
+short-lived crates.io token. Configure the crate to trust owner `bzsanti`,
+repository `oxidize-webpki`, workflow `publish.yml`, with no environment.
+Only the publishing job receives `id-token: write`; pull-request validation
+does not request publishing credentials.
 
 ## Continuous integration
 
