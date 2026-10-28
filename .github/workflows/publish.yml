@@ -17,6 +17,9 @@ jobs:
   publish:
     needs: validate
     if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest
     env:
       CC: 'false'
@@ -35,9 +38,12 @@ jobs:
           assert package['license'] == 'MIT'
           assert package['version'] == os.environ['RELEASE_VERSION'], 'Version mismatch'
           PYTHON
+      - name: Authenticate with crates.io
+        id: auth
+        uses: rust-lang/crates-io-auth-action@3268eb413133e2960fa4ae0e963ca76380c54cd9 # v1
       - name: Publish verified crate
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
         run: |
           test -n "$CARGO_REGISTRY_TOKEN"
           cargo publish --locked --package oxidize-webpki
